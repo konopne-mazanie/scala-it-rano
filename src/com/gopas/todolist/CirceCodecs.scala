@@ -15,6 +15,11 @@ object CirceCodecs {
   implicit def newtypeEncoder[A, B](implicit co: Coercible[A, B], enc: Encoder[B]): Encoder[A] = (in: A) => enc(in.coerce)
   implicit def newtypeDecoder[A, B](implicit co: Coercible[B, A], dec: Decoder[B]): Decoder[A] = (c: HCursor) => dec(c).map(_.coerce)
 
+  // override to enforce validation
+  implicit val nameDecoder: Decoder[Name] = Decoder[String].map(Name.apply)
+  implicit val descriptionDecoder: Decoder[Description] = Decoder[String].map(Description.apply)
+  implicit val tagDecoder = Decoder[String].map(Tag.apply)
+
   implicit val uuidEncoder: Encoder[UUID] = (uuid: UUID) => Json.fromString(uuid.toString)
   implicit val uuidDecoder: Decoder[UUID] = (c: HCursor) => c.value.as[String].map(UUID.fromString)
 

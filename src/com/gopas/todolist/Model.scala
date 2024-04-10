@@ -11,10 +11,10 @@ import scala.util.matching.Regex
 object Model {
 
   private def validateName(fieldName: String, validationRegex: Regex, value: String): Unit =
-    value match {
-      case validationRegex(_) => ()
-      case _ => throw new IllegalArgumentException(s"Invalid $fieldName")
-    }
+    if (!validationRegex.findAllMatchIn(value).hasNext)
+      throw new IllegalArgumentException(s"Invalid $fieldName")
+    else
+      ()
 
   @newtype case class Id[T](value: UUID)
 
@@ -29,7 +29,7 @@ object Model {
   @newtype class Description(val value: String)
   object Description {
     def apply(value: String): Description = {
-      validateName("description", "^[A-Za-z0-9\\s-:\n]{1,500}$".r, value)
+      validateName("description", """^[A-Za-z0-9\-:\n\s]{1,500}$""".r, value)
       value.coerce
     }
   }
@@ -60,7 +60,7 @@ object Model {
                  priority: Priority
                  )
 
-  case class TaskDetail(id: Id[Task], description: Description)
+  case class TaskDetail(taskId: Id[Task], description: Option[Description])
 
   case class CreateTaskPld(
                    name: Name,
@@ -70,12 +70,14 @@ object Model {
                    description: Option[Description]
                  )
 
+  case class EditDescriptionPld(replaceWith: Option[Description])
+
   case class EditTaskPld(
                             name: Option[Name],
                             tags: Option[Set[Tag]],
                             deadline: Option[Deadline],
                             priority: Option[Priority],
-                            description: Option[Option[Description]]
+                            description: Option[EditDescriptionPld]
                           )
 
   class DateTimeRange[T](val from: LocalDateTime, val to: LocalDateTime)

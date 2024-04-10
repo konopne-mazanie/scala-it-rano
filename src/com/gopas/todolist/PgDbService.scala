@@ -158,8 +158,8 @@ class PgDbService private (transactor: HikariTransactor[IO], descriptionService:
           _ <-
             editTaskPld.description
               .map {
-                case Some(description) => descriptionService.updateDescription(taskId, description)
-                case None => descriptionService.deleteDescription(taskId)
+                case EditDescriptionPld(Some(description)) => descriptionService.updateDescription(taskId, description)
+                case EditDescriptionPld(None) => descriptionService.deleteDescription(taskId)
               }
               .map(liftIO(_))
               .getOrElse(().pure[ConnectionIO])
