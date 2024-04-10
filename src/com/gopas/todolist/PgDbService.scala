@@ -90,12 +90,15 @@ class PgDbService private (transactor: HikariTransactor[IO], descriptionService:
           )))
         )
       count <- fr"SELECT COUNT(1) $from $filter".query[Int].unique
+      ordering = fr"ORDER BY ${Fragment.const(taskFilter.ordering.orderBy.sql)} ${if (taskFilter.ordering.ascending) fr"ASC" else fr"DESC"}"
+      paging = fr"LIMIT ${taskFilter.paging.count} OFFSET ${taskFilter.paging.from}"
       tasks <-
         fr"""
-        |SELECT id, name, tags, is_done, deadline, priority
+        |SELECT id, name, COALESCE(tags, '{}'::VARCHAR(10)[]) AS tags, is_done, deadline, priority
         |$from
         |$filter
-        |LIMIT ${taskFilter.paging.count} OFFSET ${taskFilter.paging.from}
+        |$ordering
+        |$paging
         """.stripMargin
           .query[Task]
           .to[List]

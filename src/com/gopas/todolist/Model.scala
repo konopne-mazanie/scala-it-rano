@@ -107,13 +107,28 @@ object Model {
     }
   }
 
+  sealed trait OrderBy {
+    val sql: String
+  }
+  object OrderBy {
+    case object Priority extends OrderBy {
+      val sql = "priority"
+    }
+    case object Deadline extends OrderBy {
+      val sql = "deadline"
+    }
+  }
+
+  case class OrderingDef(orderBy: OrderBy, ascending: Boolean)
+
   case class TaskFilter(
                        nameFilter: Option[Name],
                        tagFilter: Set[Tag],
                        isDoneFilter: Option[IsDone],
                        deadlineFilter: Option[DateTimeRange[Deadline]],
                        priorityFilter: PriorityRange,
-                       paging: Paging
+                       paging: Paging,
+                       ordering: OrderingDef
                        )
 
   case class TaskList(tasks: List[Task], totalCount: Int)

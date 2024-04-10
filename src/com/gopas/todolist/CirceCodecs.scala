@@ -37,6 +37,11 @@ object CirceCodecs {
 
   implicit val taskFilterEncoder: Encoder[TaskFilter] = (_: TaskFilter) => throw new NotImplementedError("")
 
+  implicit val orderByDecoder: Decoder[OrderBy] = Decoder[String].map {
+    case OrderBy.Priority.sql => OrderBy.Priority
+    case OrderBy.Deadline.sql => OrderBy.Deadline
+  }
+
   // allow missing optional value
   implicit def optionEncoder[T](implicit enc: Encoder[T]): Encoder[Option[T]] = {
     case Some(value) => value.asJson.deepDropNullValues
