@@ -8,6 +8,8 @@ import sttp.tapir.json.circe._
 import sttp.tapir.codec.newtype._
 import CirceCodecs._
 import TapirCodecs._
+import cats.effect.IO
+import sttp.capabilities.fs2.Fs2Streams
 
 object Endpoints {
 
@@ -63,6 +65,11 @@ object Endpoints {
       .delete
       .in(idPath)
       .in("done")
+
+  val websocket =
+    endpoint
+      .in("api" / "ws")
+      .out(webSocketBody[WSRequest, CodecFormat.Json, Task, CodecFormat.Json](Fs2Streams[IO]))
 
   val endpoints = List(getTaskList, getTask, deleteTask, createTask, editTask, setTaskDone, unsetTaskDone)
 

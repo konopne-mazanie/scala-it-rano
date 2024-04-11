@@ -6,6 +6,7 @@ import com.gopas.todolist.Model.{AccessToken, IsDone}
 import Helpers._
 import com.typesafe.scalalogging.StrictLogging
 import org.http4s.HttpRoutes
+import org.http4s.server.websocket.WebSocketBuilder2
 import sttp.model.StatusCode
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 
@@ -13,7 +14,7 @@ object Routes extends StrictLogging {
 
   import Endpoints._
 
-  def apply(service: Service): HttpRoutes[IO] = {
+  def apply(service: Service): WebSocketBuilder2[IO] => HttpRoutes[IO] = {
 
     def securityLogic(token: AccessToken): IO[Either[(StatusCode, String), Unit]] =
       IO(if (token.value == "test") Right(()) else Left(StatusCode.Unauthorized, "invalid token"))
@@ -59,7 +60,10 @@ object Routes extends StrictLogging {
         .serverLogic(_ => (service.setTaskDone(_, IsDone(false))) andThen handleEmptyResult)
     )
 
-    Http4sServerInterpreter[IO]().toRoutes(serverEndpoints)
+    val websocketServerEndpoints = List(websocket.serverLogicSuccess(_ => IO.pure(service.exportTasks)))
+
+    Http4sServerInterpreter[IO]().toRoutes(serverEndpoints) <+>
+      Http4sServerInterpreter[IO]().toWebSocketRoutes(websocketServerEndpoints)(_)
   }
 
 }

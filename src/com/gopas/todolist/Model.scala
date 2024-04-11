@@ -122,16 +122,18 @@ object Model {
   case class OrderingDef(orderBy: OrderBy, ascending: Boolean)
 
   case class TaskFilter(
-                       nameFilter: Option[Name],
-                       tagFilter: Set[Tag],
-                       isDoneFilter: Option[IsDone],
-                       deadlineFilter: Option[DateTimeRange[Deadline]],
-                       priorityFilter: PriorityRange,
-                       paging: Paging,
-                       ordering: OrderingDef
+                         nameFilter: Option[Name] = None,
+                         tagFilter: Set[Tag] = Set.empty,
+                         isDoneFilter: Option[IsDone] = None,
+                         deadlineFilter: Option[DateTimeRange[Deadline]] = None,
+                         priorityFilter: PriorityRange = PriorityRange(Priority.Low, Priority.High),
+                         paging: Paging,
+                         ordering: OrderingDef
                        )
 
   case class TaskList(tasks: List[Task], totalCount: Int)
+
+  case class WSRequest(tags: Set[Tag])
 
   @newtype case class AccessToken(value: String)
 
