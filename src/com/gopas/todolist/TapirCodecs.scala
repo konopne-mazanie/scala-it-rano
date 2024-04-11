@@ -24,7 +24,10 @@ object TapirCodecs {
     rangeSchema[PriorityRange, Priority](_.from, _.to)
 
   implicit val pagingSchema: Schema[Paging] =
-    rangeSchema[Paging, Int](_.from, _.count)
+    Schema(SchemaType.SProduct(List(
+      SchemaType.SProductField[Paging, Int](FieldName("from"), Schema.schemaForInt, paging => Some(paging.from)),
+      SchemaType.SProductField[Paging, Int](FieldName("count"), Schema.schemaForInt, paging => Some(paging.count))
+    )))
 
   implicit def idCodec[T]: Codec[String, Id[T], CodecFormat.TextPlain] =
     Codec.string.mapDecode(id => Try(UUID.fromString(id)).map(Id[T]) match {
