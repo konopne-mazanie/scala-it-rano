@@ -134,7 +134,7 @@ class PgDbService private (transactor: HikariTransactor[IO], descriptionService:
               .getOrElse(().pure[ConnectionIO])
           _ <-
             createTaskPld.description
-              .map(description => liftIO(descriptionService.insertDescription(taskId, description)))
+              .map(description => liftIO(descriptionService.upsertDescription(taskId, description)))
               .getOrElse(().pure[ConnectionIO])
         } yield taskId
       }
@@ -161,7 +161,7 @@ class PgDbService private (transactor: HikariTransactor[IO], descriptionService:
           _ <-
             editTaskPld.description
               .map {
-                case EditDescriptionPld(Some(description)) => descriptionService.updateDescription(taskId, description)
+                case EditDescriptionPld(Some(description)) => descriptionService.upsertDescription(taskId, description)
                 case EditDescriptionPld(None) => descriptionService.deleteDescription(taskId)
               }
               .map(liftIO(_))

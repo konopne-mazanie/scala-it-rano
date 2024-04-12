@@ -26,15 +26,14 @@ class MongoDbService private (taskCollection: MongoCollection[IO, TaskDetail]) e
       .first
       .map(_.getOrElse(TaskDetail(taskId, Option.empty[Description])))
 
-  def insertDescription(taskId: Id[Task], description: Description): IO[Unit] =
-    taskCollection
-      .insertOne(TaskDetail(taskId, Some(description)))
-      .map(_ => ())
-
-  def updateDescription(taskId: Id[Task], description: Description): IO[Unit] =
+  def upsertDescription(taskId: Id[Task], description: Description): IO[Unit] =
     for {
       updateResult <- taskCollection.updateOne(taskIdFilter(taskId), Update.set("description", description))
-      _ <- if (updateResult.getMatchedCount < 1) insertDescription(taskId, description) else ().pure[IO]
+      _ <-
+        if (updateResult.getMatchedCount < 1)
+          taskCollection.insertOne(TaskDetail(taskId, Some(description)))
+        else
+          ().pure[IO]
     } yield ()
 
   def deleteDescription(taskId: Id[Task]): IO[Unit] =
